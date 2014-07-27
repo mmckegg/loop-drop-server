@@ -16,7 +16,6 @@ function broadcast(message){
       clients[i].write(JSON.stringify(message))
     }
   }
-  console.log('**BROADCAST**', JSON.stringify(message))
 }
 
 function direct(message, to){
@@ -26,7 +25,6 @@ function direct(message, to){
     }
   } else {
     clientLookup[to]&&clientLookup[to].write(JSON.stringify(message))
-    console.log('**DIRECT**', to, JSON.stringify(message))
   }
 }
 
@@ -54,10 +52,9 @@ wss.on('connection', function(ws) {
     }
   })
 
-  // handle disconnect
-  socket.on('end', function(){
+  function cleanUp(){
     var index = clients.indexOf(socket)
-    if (index){
+    if (~index){
       clients.splice(index, 1)
       clientLookup[socket.clientId] = null
       console.log('client disconnect', socket.clientId)
@@ -67,7 +64,10 @@ wss.on('connection', function(ws) {
         clientDisconnect: socket.clientId
       })
     }
-  })
+  }
+
+  // handle disconnect
+  socket.on('close', cleanUp)
 
   socket.on('error', function(err){
     console.log(err)
